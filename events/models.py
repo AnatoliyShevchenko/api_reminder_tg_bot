@@ -8,10 +8,10 @@ from clients.models import Client
 class Events(models.Model):
     """Model for the Client's events."""
 
-    client_id = models.ForeignKey(
+    client = models.ForeignKey(
         to=Client,
         on_delete=models.CASCADE,
-        to_field="id",
+        to_field="telegram_id",
         related_name="client_events",
         verbose_name="клиент",
     )
@@ -30,4 +30,4 @@ class Events(models.Model):
         verbose_name_plural = "события"
 
     def __str__(self):
-        return f"{self.client_id} | {self.title} | {self.created_at}"
+        return f"{self.client} | {self.title} | {self.created_at}"

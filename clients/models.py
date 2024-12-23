@@ -15,11 +15,13 @@ from settings.base import logger
 class ClientManager(BaseUserManager):
     """Manager for the Client."""
 
-    def create_user(self, telegram_id: int) -> Client:
+    def create_user(self, telegram_id: int, timezone: str) -> Client:
         """Create client method."""
         if not telegram_id:
             raise ValueError("The telegram_id field must be set")
-        client: Client = self.model(telegram_id=telegram_id)
+        client: Client = self.model(
+            telegram_id=telegram_id, timezone=timezone
+        )
         client.save(using=self._db)
         return client
 
@@ -49,7 +51,10 @@ class Client(AbstractBaseUser, PermissionsMixin):
         null=True,
     )
     telegram_id = models.PositiveBigIntegerField(
-        unique=True, verbose_name="id телеграм", null=True, blank=True
+        unique=True,
+        verbose_name="id телеграм",
+        primary_key=True,
+        default=0,
     )
     timezone = models.CharField(
         verbose_name="часовой пояс(utc)", default="UTC+05:00"
@@ -75,21 +80,9 @@ class Client(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "username"
 
     class Meta:
-        ordering = ("-id",)
+        ordering = ("-telegram_id",)
         verbose_name = "пользователь"
         verbose_name_plural = "пользователи"
-
-    def save(self, *args, **kwargs):
-        try:
-            super().save(*args, **kwargs)
-            logger.info(
-                f"Client with phone number {self.telegram_id} has been registered"
-            )
-        except Exception as e:
-            logger.error(
-                f"Cannot register Client with phone number {self.telegram_id}. ERROR: {e}"
-            )
-            raise
 
     def __str__(self) -> str:
         return (
